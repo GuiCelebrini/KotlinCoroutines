@@ -2,32 +2,49 @@ package com.android.guicelebrini.kotlincoroutines.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.android.guicelebrini.kotlincoroutines.R
 import com.android.guicelebrini.kotlincoroutines.adapter.AdapterRecyclerCharacters
+import com.android.guicelebrini.kotlincoroutines.api.HarryPotterService
 import com.android.guicelebrini.kotlincoroutines.model.Character
 import kotlinx.android.synthetic.main.activity_main.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
-    val charactersList = arrayListOf<Character>()
+    var charactersList = arrayListOf<Character>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         createCharactersList()
-
-        configureRecyclerView()
-
     }
 
     fun createCharactersList(){
-        charactersList.add(Character("Réuri", "Prédio", "Gordo", "https://pm1.narvii.com/6304/ec17b75745651f282db742c8de8f649a92f5a6ae_hq.jpg"))
-        charactersList.add(Character("Rony", "Palmeiras", "Rústico", "https://metropolitanafm.com.br/wp-content/uploads/2021/04/Em-noite-inspiradora-de-Rony-R%C3%BAstico-Palmeiras-goleia-Independiente-del-Valle-pela-Libertadores.jpg"))
+
+        val harryPotterService = HarryPotterService.create()
+
+        harryPotterService.getCharacters().enqueue(object : Callback<ArrayList<Character>>{
+            override fun onResponse(call: Call<ArrayList<Character>>, response: Response<ArrayList<Character>>) {
+                if (response.isSuccessful){
+                    charactersList = response.body()!!
+                    configureRecyclerView()
+                }
+            }
+
+            override fun onFailure(call: Call<ArrayList<Character>>, t: Throwable) {
+                Log.e("Erro", "onFailure: ${t.message}", )
+            }
+
+
+        })
+
     }
 
     fun configureRecyclerView(){
