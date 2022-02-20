@@ -6,5 +6,4 @@ data class Character(
     val ancestry: String,
     val image: String) {
 
-    
 }
