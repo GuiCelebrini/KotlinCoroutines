@@ -11,7 +11,7 @@ interface HarryPotterService {
     @GET("characters")
     fun getCharacters() : Call<ArrayList<Character>>
 
-    companion object{
+    /*companion object{
 
         fun create() : HarryPotterService{
 
@@ -23,6 +23,6 @@ interface HarryPotterService {
             return retrofit.create(HarryPotterService::class.java)
         }
 
-    }
+    }*/
 
 }

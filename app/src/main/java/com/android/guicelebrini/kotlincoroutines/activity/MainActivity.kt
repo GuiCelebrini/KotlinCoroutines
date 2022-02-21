@@ -11,24 +11,48 @@ import com.android.guicelebrini.kotlincoroutines.adapter.AdapterRecyclerCharacte
 import com.android.guicelebrini.kotlincoroutines.api.HarryPotterService
 import com.android.guicelebrini.kotlincoroutines.model.Character
 import kotlinx.android.synthetic.main.activity_main.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.*
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
     var charactersList = arrayListOf<Character>()
+    lateinit var service: HarryPotterService
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        createCharactersList()
+        configureRetrofit()
+
+        getCharactersList()
     }
 
-    fun createCharactersList(){
+    fun configureRetrofit(){
+        service = Retrofit.Builder().baseUrl("http://hp-api.herokuapp.com/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(HarryPotterService::class.java)
+    }
 
-        val harryPotterService = HarryPotterService.create()
+    fun getCharactersList(){
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            val characters = service.getCharacters().await()
+
+            withContext(Dispatchers.Main){
+                characters?.let { charactersList = it }
+                configureRecyclerView(charactersList)
+            }
+
+        }
+
+        /*val harryPotterService = HarryPotterService.create()
 
         harryPotterService.getCharacters().enqueue(object : Callback<ArrayList<Character>>{
             override fun onResponse(call: Call<ArrayList<Character>>, response: Response<ArrayList<Character>>) {
@@ -43,13 +67,13 @@ class MainActivity : AppCompatActivity() {
             }
 
 
-        })
+        })*/
 
     }
 
-    fun configureRecyclerView(){
+    fun configureRecyclerView(characters: ArrayList<Character>){
 
-        val adapter = AdapterRecyclerCharacters(charactersList, applicationContext)
+        val adapter = AdapterRecyclerCharacters(characters, applicationContext)
         val layoutManager = LinearLayoutManager(applicationContext)
         recycler_view.setHasFixedSize(true)
         recycler_view.addItemDecoration(DividerItemDecoration(applicationContext, LinearLayout.VERTICAL))
